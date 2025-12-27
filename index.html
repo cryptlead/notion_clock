@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ultimate Flip Clock Widget - Responsive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Flip Clock Widget V11 - Sharp & Positioned</title>
     <style>
         :root {
             /* --- FARBPALETTE --- */
@@ -15,17 +15,16 @@
             --ring-track-color: rgba(255, 255, 255, 0.08); 
             --accent-color: #e0e0e0;     
             
-            /* --- RESPONSIVE GRÖSSEN (Das Herzstück der Anpassung) --- */
-            /* Wir nutzen 'vmin', damit es sich immer an die kleinste Seite (Höhe oder Breite) anpasst */
-            --widget-scale: 90vmin; /* Der Kreis nimmt 90% der kleinsten Seite ein */
+            /* --- RESPONSIVE GRÖSSEN --- */
+            --widget-scale: 90vmin; 
             
-            /* Alle Größen basieren nun auf vmin, nicht mehr px */
+            /* Wir nutzen max(), damit Elemente nicht mikroskopisch klein (verpixelt) werden */
             --card-width: 14vmin;
             --card-height: 18vmin;
-            --font-size: 11vmin;
-            --corner-radius: 1.5vmin;
             
-            /* Abstände relativ */
+            /* Mindestgröße für Fonts definieren, um Verpixelung zu stoppen */
+            --font-size: max(24px, 11vmin); 
+            --corner-radius: 1.5vmin;
             --gap-size: 2vmin;
         }
 
@@ -38,9 +37,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Füllt das iframe Fenster komplett */
-            overflow: hidden; /* Verhindert Scrollbalken im Widget */
+            min-height: 100vh; 
+            overflow: hidden; 
             transition: background-color 0.3s ease, color 0.3s ease;
+            
+            /* WICHTIG: Text-Glättung gegen Verpixelung */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body.light {
@@ -54,7 +57,6 @@
         /* --- WRAPPER --- */
         .dashboard-wrapper {
             position: relative;
-            /* Der Wrapper ist so groß wie der Kreis definiert ist */
             width: var(--widget-scale);
             height: var(--widget-scale);
             display: flex;
@@ -70,7 +72,8 @@
             height: 100%;
             z-index: 1; 
             pointer-events: none;
-            /* SVG skaliert automatisch in diesem Container */
+            /* WICHTIG: Sorgt für scharfe Linien beim Skalieren */
+            shape-rendering: geometricPrecision; 
         }
 
         .progress-ring__circle {
@@ -78,6 +81,8 @@
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
             stroke-linecap: round;
+            /* Hardware Beschleunigung für glattere Animation */
+            will-change: stroke-dashoffset; 
         }
 
         .progress-ring__bg {
@@ -87,7 +92,7 @@
 
         /* --- CONTAINER (UHR INHALT) --- */
         .container {
-            position: absolute; /* Absolut über dem SVG zentriert */
+            position: absolute; 
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -95,7 +100,12 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            /* Kein Scale Transform mehr nötig, da CSS Variablen skalieren */
+            
+            /* HIER IST DIE VERSCHIEBUNG: 
+               Wir nutzen padding-top, um den Inhalt innerhalb des Kreises 
+               nach unten zu drücken, ohne den Kreis zu bewegen. 
+               5vmin entspricht ca. 25px auf Desktop, skaliert aber mit. */
+            padding-top: 6vmin; 
         }
 
         /* --- UHR STYLE --- */
@@ -103,7 +113,7 @@
             display: flex; 
             gap: var(--gap-size); 
             align-items: center; 
-            margin-bottom: 2vmin; /* Etwas Abstand nach unten */
+            margin-bottom: 2vmin; 
         }
         .time-group { display: flex; gap: 1vmin; position: relative; }
 
@@ -113,7 +123,9 @@
             height: var(--card-height);
             perspective: 800px;
             border-radius: var(--corner-radius);
-            box-shadow: 0 0.5vmin 2vmin rgba(0,0,0,0.3); /* Schatten skaliert auch */
+            box-shadow: 0 0.5vmin 2vmin rgba(0,0,0,0.3); 
+            /* Verhindert Flackern/Unschärfe bei 3D Transform */
+            transform: translateZ(0); 
         }
 
         .time-segment {
@@ -161,12 +173,14 @@
 
         .period {
             position: absolute; top: 1vmin; left: 1.5vmin;
-            font-size: 2vmin; font-weight: 700; opacity: 0.5; z-index: 20; letter-spacing: 1px; text-transform: uppercase;
+            font-size: max(10px, 2vmin); /* Mindestgröße */
+            font-weight: 700; opacity: 0.5; z-index: 20; letter-spacing: 1px; text-transform: uppercase;
         }
 
         .day-name {
             position: absolute; bottom: 1vmin; right: 1.5vmin;
-            font-size: 2vmin; font-weight: 700; opacity: 0.6; z-index: 20; text-transform: uppercase; letter-spacing: 1px;
+            font-size: max(10px, 2vmin); /* Mindestgröße */
+            font-weight: 700; opacity: 0.6; z-index: 20; text-transform: uppercase; letter-spacing: 1px;
         }
 
         /* --- DATUM --- */
@@ -177,11 +191,16 @@
         .date-card {
             background-color: var(--card-bg); color: var(--text-color);
             width: 4vmin; height: 5.5vmin; border-radius: 0.8vmin; 
-            font-size: 2.5vmin; font-weight: 700;
+            /* Schriftgröße niemals unter 12px fallen lassen */
+            font-size: max(12px, 2.5vmin); 
+            font-weight: 700;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0.2vmin 1vmin rgba(0,0,0,0.2); transition: background-color 0.3s, color 0.3s;
         }
-        .date-separator { font-size: 2.5vmin; font-weight: 700; opacity: 0.5; }
+        .date-separator { 
+            font-size: max(12px, 2.5vmin); 
+            font-weight: 700; opacity: 0.5; 
+        }
 
         /* --- CONTROLS --- */
         .controls {
@@ -193,13 +212,15 @@
             box-shadow: 0 0.5vmin 2vmin rgba(0,0,0,0.3);
             margin-top: 1.5vmin;
             align-items: center;
-            transform: scale(0.9); /* Visuell etwas kleiner machen */
+            transform: scale(0.9); 
         }
         
         .control-btn {
             background: transparent; border: none; color: var(--text-color); 
             cursor: pointer; opacity: 0.5; transition: all 0.3s ease;
-            width: 5vmin; height: 5vmin; /* Auch Buttons skalieren mit vmin */
+            width: 5vmin; height: 5vmin;
+            /* Mindestgröße für Buttons damit man sie noch klicken kann */
+            min-width: 25px; min-height: 25px; 
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
@@ -212,19 +233,25 @@
         
         .control-icon {
             width: 2.5vmin; height: 2.5vmin;
+            min-width: 14px; min-height: 14px; /* Icon Mindestgröße */
             fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
         }
 
-        /* --- STATS LEISTE --- */
+        /* --- STATS LEISTE (Hier war das Verpixelungs-Problem) --- */
         .stats-display {
             display: flex;
             flex-direction: column;
             gap: 0.5vmin;
             align-items: center;
-            font-size: 1.8vmin; font-weight: 500; color: var(--text-color); opacity: 0.8;
+            /* WICHTIG: max(10px, ...) verhindert dass der Text zu Pixelbrei wird */
+            font-size: max(10px, 1.8vmin); 
+            font-weight: 600; /* Etwas fetter für bessere Lesbarkeit in klein */
+            color: var(--text-color); opacity: 0.9;
             text-transform: uppercase; letter-spacing: 1px;
-            /* Hintergrund etwas subtiler gemacht */
             background: rgba(255,255,255,0.03);
+            /* Backdrop Filter hilft manchmal gegen Rauschen */
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
             padding: 1.5vmin 3vmin; border-radius: 2vmin;
             margin-top: 1.5vmin; 
             min-width: 18vmin;
@@ -236,16 +263,16 @@
         .settings-menu {
             position: absolute; bottom: 5vmin; background: #222; padding: 2vmin; border-radius: 2vmin;
             display: flex; flex-direction: column; gap: 1.5vmin; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 100;
-            opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s ease; width: 30vmin;
+            opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s ease; width: 30vmin; min-width: 200px;
             border: 1px solid rgba(255,255,255,0.1);
         }
         body.light .settings-menu { background: #fff; border: 1px solid rgba(0,0,0,0.1); color: #333; }
         .settings-menu.open { opacity: 1; pointer-events: all; transform: translateY(0); }
-        .color-option { display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 600; color: #ccc; }
+        .color-option { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; color: #ccc; }
         body.light .color-option { color: #555; }
-        .color-input-wrapper { width: 3vmin; height: 3vmin; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
+        .color-input-wrapper { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
         body.light .color-input-wrapper { border: 2px solid rgba(0,0,0,0.2); }
-        .reset-btn { margin-top: 0.5vmin; padding: 1vmin; background: rgba(255,255,255,0.1); border: none; border-radius: 1vmin; color: inherit; font-size: 1.5vmin; cursor: pointer; font-weight: 700; text-transform: uppercase; }
+        .reset-btn { margin-top: 5px; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 6px; color: inherit; font-size: 11px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
 
     </style>
 </head>
