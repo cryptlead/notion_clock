@@ -3,59 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Clock</title>
+    <title>Notion Flip Clock Pro</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            /* Standard: Dark Mode Variablen */
+            --bg-color: #000000;
+            --card-bg: #1c1c1e;
+            --text-color: #ffffff;
+            --line-color: #000000;
+            --sub-text: #666666;
+            --icon-hover: #ffffff;
+        }
+
+        /* Light Mode Variablen */
+        body.light-mode {
+            --bg-color: #f0f0f0;
+            --card-bg: #ffffff;
+            --text-color: #222222;
+            --line-color: #e0e0e0;
+            --sub-text: #a0a0a0;
+            --icon-hover: #000000;
+        }
+
         body {
-            background: #1a1a1a;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            font-family: 'Courier New', monospace;
+            height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
         }
+
         .clock-container {
-            background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
-            padding: 40px 60px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.05);
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 15px;
         }
-        .clock {
-            font-size: 5rem;
+
+        .card {
+            background-color: var(--card-bg);
+            width: 140px;
+            height: 120px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .time-text {
+            font-size: 80px;
             font-weight: 700;
-            color: #00ff88;
-            letter-spacing: 0.1em;
-            text-shadow: 0 0 20px rgba(0,255,136,0.5), 0 0 40px rgba(0,255,136,0.3);
-            margin-bottom: 15px;
+            z-index: 2;
+            line-height: 1;
+            letter-spacing: 2px;
+            color: var(--text-color);
         }
-        .date {
-            font-size: 1.5rem;
-            color: #888;
+
+        .ampm {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--sub-text);
             text-transform: uppercase;
-            letter-spacing: 0.2em;
-            font-weight: 300;
+        }
+
+        /* Der horizontale Strich */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--line-color);
+            opacity: 0.4;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        /* Steuerungen unten rechts */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-weight: 600;
+            color: var(--sub-text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .control-item {
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .control-item:hover {
+            color: var(--icon-hover);
+        }
+
+        .active {
+            color: var(--text-color);
+        }
+
+        /* SVG Icon Styles */
+        svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
         }
     </style>
 </head>
 <body>
+
     <div class="clock-container">
-        <div class="clock" id="clock">17:00</div>
-        <div class="date" id="date">Samstag</div>
+        <div class="card">
+            <div class="ampm" id="ampm"></div>
+            <div class="time-text" id="hours">12</div>
+        </div>
+
+        <div class="card">
+            <div class="time-text" id="minutes">00</div>
+        </div>
     </div>
+
+    <div class="controls">
+        <div class="control-item" id="btn-24h" onclick="toggleFormat()">24h</div>
+        <div class="control-item" onclick="toggleTheme()">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/>
+            </svg>
+        </div>
+    </div>
+
     <script>
+        // Standardwerte oder gespeicherte Werte laden
+        let is24Hour = localStorage.getItem('is24Hour') === 'true';
+        let isLightMode = localStorage.getItem('isLightMode') === 'true';
+
+        // Initialisierung beim Laden
+        if (isLightMode) {
+            document.body.classList.add('light-mode');
+        }
+        updateFormatButton();
+
         function updateClock() {
             const now = new Date();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const weekdays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-            const weekday = weekdays[now.getDay()];
-            document.getElementById('clock').textContent = `${hours}:${minutes}`;
-            document.getElementById('date').textContent = weekday;
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampmText = '';
+
+            if (!is24Hour) {
+                // 12-Stunden Logik
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; 
+                ampmText = ampm;
+            }
+
+            const strHours = hours < 10 ? '0' + hours : hours;
+            const strMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+            document.getElementById('hours').innerText = strHours;
+            document.getElementById('minutes').innerText = strMinutes;
+            document.getElementById('ampm').innerText = ampmText;
         }
-        updateClock();
+
+        function toggleFormat() {
+            is24Hour = !is24Hour;
+            localStorage.setItem('is24Hour', is24Hour); // Speichern
+            updateFormatButton();
+            updateClock();
+        }
+
+        function updateFormatButton() {
+            const btn = document.getElementById('btn-24h');
+            if (is24Hour) {
+                btn.classList.add('active');
+                btn.style.opacity = "1";
+            } else {
+                btn.classList.remove('active');
+                btn.style.opacity = "0.5";
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            isLightMode = document.body.classList.contains('light-mode');
+            localStorage.setItem('isLightMode', isLightMode); // Speichern
+        }
+
         setInterval(updateClock, 1000);
+        updateClock();
     </script>
 </body>
 </html>
