@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Flip Clock Dashboard V10 - Clean UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ultimate Flip Clock Widget - Responsive</title>
     <style>
         :root {
             /* --- FARBPALETTE --- */
@@ -15,12 +15,18 @@
             --ring-track-color: rgba(255, 255, 255, 0.08); 
             --accent-color: #e0e0e0;     
             
-            --corner-radius: 12px;
-            --card-width: 120px;
-            --card-height: 140px;
-            --font-size: 100px;
+            /* --- RESPONSIVE GRÖSSEN (Das Herzstück der Anpassung) --- */
+            /* Wir nutzen 'vmin', damit es sich immer an die kleinste Seite (Höhe oder Breite) anpasst */
+            --widget-scale: 90vmin; /* Der Kreis nimmt 90% der kleinsten Seite ein */
             
-            --widget-size: 680px; 
+            /* Alle Größen basieren nun auf vmin, nicht mehr px */
+            --card-width: 14vmin;
+            --card-height: 18vmin;
+            --font-size: 11vmin;
+            --corner-radius: 1.5vmin;
+            
+            /* Abstände relativ */
+            --gap-size: 2vmin;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,8 +38,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+            min-height: 100vh; /* Füllt das iframe Fenster komplett */
+            overflow: hidden; /* Verhindert Scrollbalken im Widget */
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
@@ -48,21 +54,23 @@
         /* --- WRAPPER --- */
         .dashboard-wrapper {
             position: relative;
-            width: var(--widget-size);
-            height: var(--widget-size);
+            /* Der Wrapper ist so groß wie der Kreis definiert ist */
+            width: var(--widget-scale);
+            height: var(--widget-scale);
             display: flex;
             justify-content: center;
             align-items: center;
-            transform: translateY(-20px);
         }
 
         /* --- SVG CHART LAYER --- */
         .charts-layer {
             position: absolute;
             top: 0; left: 0;
-            width: 100%; height: 100%;
+            width: 100%; 
+            height: 100%;
             z-index: 1; 
             pointer-events: none;
+            /* SVG skaliert automatisch in diesem Container */
         }
 
         .progress-ring__circle {
@@ -77,21 +85,27 @@
             transition: stroke 0.3s;
         }
 
-        /* --- CONTAINER (UHR) --- */
+        /* --- CONTAINER (UHR INHALT) --- */
         .container {
-            position: relative;
+            position: absolute; /* Absolut über dem SVG zentriert */
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            transform: scale(0.85) translateY(75px); 
+            width: 100%;
+            height: 100%;
+            /* Kein Scale Transform mehr nötig, da CSS Variablen skalieren */
         }
 
         /* --- UHR STYLE --- */
-        .clock { display: flex; gap: 15px; align-items: center; }
-        .time-group { display: flex; gap: 8px; position: relative; }
+        .clock { 
+            display: flex; 
+            gap: var(--gap-size); 
+            align-items: center; 
+            margin-bottom: 2vmin; /* Etwas Abstand nach unten */
+        }
+        .time-group { display: flex; gap: 1vmin; position: relative; }
 
         .flip-container {
             position: relative;
@@ -99,7 +113,7 @@
             height: var(--card-height);
             perspective: 800px;
             border-radius: var(--corner-radius);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 0.5vmin 2vmin rgba(0,0,0,0.3); /* Schatten skaliert auch */
         }
 
         .time-segment {
@@ -146,112 +160,93 @@
         @keyframes flip-bottom { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0deg); } }
 
         .period {
-            position: absolute; top: 12px; left: 12px;
-            font-size: 14px; font-weight: 700; opacity: 0.5; z-index: 20; letter-spacing: 1px; text-transform: uppercase;
+            position: absolute; top: 1vmin; left: 1.5vmin;
+            font-size: 2vmin; font-weight: 700; opacity: 0.5; z-index: 20; letter-spacing: 1px; text-transform: uppercase;
         }
 
         .day-name {
-            position: absolute; bottom: 12px; right: 12px;
-            font-size: 14px; font-weight: 700; opacity: 0.6; z-index: 20; text-transform: uppercase; letter-spacing: 1px;
+            position: absolute; bottom: 1vmin; right: 1.5vmin;
+            font-size: 2vmin; font-weight: 700; opacity: 0.6; z-index: 20; text-transform: uppercase; letter-spacing: 1px;
         }
 
         /* --- DATUM --- */
-        .date-display { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 5px; }
+        .date-display { 
+            display: flex; gap: 0.8vmin; align-items: center; justify-content: center; 
+            margin-top: 0.5vmin; 
+        }
         .date-card {
             background-color: var(--card-bg); color: var(--text-color);
-            width: 36px; height: 46px; border-radius: 6px; font-size: 20px; font-weight: 700;
+            width: 4vmin; height: 5.5vmin; border-radius: 0.8vmin; 
+            font-size: 2.5vmin; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: background-color 0.3s, color 0.3s;
+            box-shadow: 0 0.2vmin 1vmin rgba(0,0,0,0.2); transition: background-color 0.3s, color 0.3s;
         }
-        .date-separator { font-size: 20px; font-weight: 700; opacity: 0.5; }
+        .date-separator { font-size: 2.5vmin; font-weight: 700; opacity: 0.5; }
 
-        /* --- CONTROLS (NEW DESIGN) --- */
+        /* --- CONTROLS --- */
         .controls {
             display: flex; 
-            gap: 4px; /* Schöner Abstand */
+            gap: 1vmin; 
             background-color: var(--card-bg); 
-            padding: 0px 5px; 
-            border-radius: 7px; /* Pill-Shape für modernes Aussehen */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            margin-top: 5px;
+            padding: 0.5vmin 1vmin; 
+            border-radius: 2vmin; 
+            box-shadow: 0 0.5vmin 2vmin rgba(0,0,0,0.3);
+            margin-top: 1.5vmin;
             align-items: center;
+            transform: scale(0.9); /* Visuell etwas kleiner machen */
         }
         
         .control-btn {
-            background: transparent; 
-            border: none; 
-            color: var(--text-color); 
-            cursor: pointer; 
-            opacity: 0.5; 
-            transition: all 0.3s ease;
-            width: 40px; 
-            height: 40px;
+            background: transparent; border: none; color: var(--text-color); 
+            cursor: pointer; opacity: 0.5; transition: all 0.3s ease;
+            width: 5vmin; height: 5vmin; /* Auch Buttons skalieren mit vmin */
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
 
         .control-btn:hover, .control-btn.active { 
             opacity: 1; 
-            background: rgba(255,255,255,0.05); /* Subtiler Hover-Hintergrund */
+            background: rgba(255,255,255,0.05); 
             transform: translateY(-2px);
         }
         
-        body.light .control-btn:hover {
-            background: rgba(0,0,0,0.05);
-        }
-
-        /* SVG Styles für die Icons */
         .control-icon {
-            width: 22px;
-            height: 22px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            width: 2.5vmin; height: 2.5vmin;
+            fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
         }
 
-        /* --- STATS LEISTE (VERTIKAL) --- */
+        /* --- STATS LEISTE --- */
         .stats-display {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 0.5vmin;
             align-items: center;
-            font-size: 13px; font-weight: 500; color: var(--text-color); opacity: 0.8;
+            font-size: 1.8vmin; font-weight: 500; color: var(--text-color); opacity: 0.8;
             text-transform: uppercase; letter-spacing: 1px;
-            background: rgba(129, 33, 33, 0.03);
-            padding: 10px 25px; border-radius: 12px;
-            margin-top: 5px; 
-            min-width: 140px;
+            /* Hintergrund etwas subtiler gemacht */
+            background: rgba(255,255,255,0.03);
+            padding: 1.5vmin 3vmin; border-radius: 2vmin;
+            margin-top: 1.5vmin; 
+            min-width: 18vmin;
         }
-        .stat-item { display: flex; justify-content: space-between; width: 100%; gap: 10px; }
+        .stat-item { display: flex; justify-content: space-between; width: 100%; gap: 2vmin; }
         .stat-value { font-weight: 700; color: var(--text-color); }
 
         /* --- SETTINGS MENU --- */
         .settings-menu {
-            position: absolute; bottom: 50px; background: #222; padding: 15px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 100;
-            opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s ease; width: 220px;
+            position: absolute; bottom: 5vmin; background: #222; padding: 2vmin; border-radius: 2vmin;
+            display: flex; flex-direction: column; gap: 1.5vmin; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 100;
+            opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s ease; width: 30vmin;
             border: 1px solid rgba(255,255,255,0.1);
         }
         body.light .settings-menu { background: #fff; border: 1px solid rgba(0,0,0,0.1); color: #333; }
         .settings-menu.open { opacity: 1; pointer-events: all; transform: translateY(0); }
-        .color-option { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #ccc; }
+        .color-option { display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 600; color: #ccc; }
         body.light .color-option { color: #555; }
-        .color-input-wrapper { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
+        .color-input-wrapper { width: 3vmin; height: 3vmin; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
         body.light .color-input-wrapper { border: 2px solid rgba(0,0,0,0.2); }
-        input[type="color"] { width: 200%; height: 200%; transform: translate(-25%, -25%); border: none; cursor: pointer; }
-        .reset-btn { margin-top: 5px; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 6px; color: inherit; font-size: 11px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
+        .reset-btn { margin-top: 0.5vmin; padding: 1vmin; background: rgba(255,255,255,0.1); border: none; border-radius: 1vmin; color: inherit; font-size: 1.5vmin; cursor: pointer; font-weight: 700; text-transform: uppercase; }
 
-        /* Responsive */
-        @media (max-width: 700px) {
-            :root { --widget-size: 100vw; --card-width: 60px; --card-height: 80px; --font-size: 45px; }
-            .container { gap: 10px; transform: scale(0.75) translateY(-10px); }
-            .date-card { width: 25px; height: 35px; font-size: 16px; }
-            .stats-display { font-size: 10px; }
-        }
     </style>
 </head>
 <body class="dark">
@@ -535,15 +530,11 @@
 
         function applyTheme() {
              document.body.className = isDark ? 'dark' : 'light';
-             
-             // Optional: Icon ändern basierend auf Theme
              const themeSvg = document.getElementById('themeSvg');
              if (isDark) {
-                 // Mond
                  themeSvg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
                  bgPicker.value="#000000"; cardPicker.value="#1a1a1a"; textPicker.value="#e0e0e0";
              } else {
-                 // Sonne
                  themeSvg.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
                  bgPicker.value="#f0f0f0"; cardPicker.value="#ffffff"; textPicker.value="#333333";
              }
@@ -551,8 +542,6 @@
 
         document.getElementById('formatBtn').addEventListener('click', function() {
             is24Hour = !is24Hour;
-            // Kleiner Hinweis: Du kannst hier auch das SVG ändern, wenn du möchtest, 
-            // aber das Uhr-Icon ist für den Toggle meist ausreichend.
             updateClock();
         });
 
