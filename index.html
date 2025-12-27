@@ -3,209 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Flip Clock Pro</title>
+    <title>Flip Clock</title>
     <style>
-        :root {
-            /* Standard: Dark Mode Variablen */
-            --bg-color: #000000;
-            --card-bg: #1c1c1e;
-            --text-color: #ffffff;
-            --line-color: #000000;
-            --sub-text: #666666;
-            --icon-hover: #ffffff;
-        }
-
-        /* Light Mode Variablen */
-        body.light-mode {
-            --bg-color: #f0f0f0;
-            --card-bg: #ffffff;
-            --text-color: #222222;
-            --line-color: #e0e0e0;
-            --sub-text: #a0a0a0;
-            --icon-hover: #000000;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-color);
-            overflow: hidden;
+            min-height: 100vh;
             transition: background-color 0.3s ease;
         }
 
-        .clock-container {
+        body.light {
+            background: #e0e0e0;
+        }
+
+        body.dark {
+            background: #000;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .clock {
             display: flex;
             gap: 15px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            width: 140px;
-            height: 120px;
-            border-radius: 12px;
-            display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: background-color 0.3s ease;
         }
 
-        .time-text {
+        .time-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .separator {
             font-size: 80px;
             font-weight: 700;
-            z-index: 2;
-            line-height: 1;
-            letter-spacing: 2px;
-            color: var(--text-color);
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
         }
 
-        .ampm {
+        .flip-card {
+            position: relative;
+            width: 120px;
+            height: 140px;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .flip-card.flipping .flip-card-inner {
+            transform: rotateX(-180deg);
+        }
+
+        .flip-card-face {
             position: absolute;
-            top: 10px;
-            left: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--sub-text);
-            text-transform: uppercase;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        /* Der horizontale Strich */
-        .card::after {
+        .flip-card-front {
+            transform: rotateX(0deg);
+        }
+
+        .flip-card-back {
+            transform: rotateX(180deg);
+        }
+
+        .card-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-half {
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .card-half {
+            background: #1a1a1a;
+        }
+
+        body.light .card-half {
+            background: #ffffff;
+        }
+
+        .card-half::after {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: var(--line-color);
-            opacity: 0.4;
-            transform: translateY(-50%);
-            z-index: 1;
+            width: 100%;
+            height: 1px;
         }
 
-        /* Steuerungen unten rechts */
-        .controls {
+        body.dark .card-half::after {
+            background: #000;
+        }
+
+        body.light .card-half::after {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .card-half.top::after {
+            bottom: 0;
+        }
+
+        .card-half.bottom::after {
+            top: 0;
+        }
+
+        .number {
+            font-size: 90px;
+            font-weight: 700;
+            line-height: 1;
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
+        }
+
+        body.dark .number {
+            color: #fff;
+        }
+
+        body.light .number {
+            color: #333;
+        }
+
+        .card-half.top .number {
+            bottom: -45px;
+        }
+
+        .card-half.bottom .number {
+            top: -45px;
+        }
+
+        .period {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 16px;
             font-weight: 600;
-            color: var(--sub-text);
-            cursor: pointer;
-            user-select: none;
+            opacity: 0.6;
         }
 
-        .control-item {
-            transition: color 0.2s;
+        body.dark .period {
+            color: #fff;
+        }
+
+        body.light .period {
+            color: #333;
+        }
+
+        .date-display {
+            margin-top: 30px;
             display: flex;
+            gap: 5px;
+            justify-content: center;
             align-items: center;
         }
 
-        .control-item:hover {
-            color: var(--icon-hover);
+        .date-card {
+            width: 45px;
+            height: 55px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
         }
 
-        .active {
-            color: var(--text-color);
+        body.dark .date-card {
+            background: #1a1a1a;
+            color: #fff;
         }
 
-        /* SVG Icon Styles */
-        svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        body.light .date-card {
+            background: #ffffff;
+            color: #333;
+        }
+
+        .date-separator {
+            font-size: 32px;
+            font-weight: 700;
+            opacity: 0.5;
+        }
+
+        body.dark .date-separator {
+            color: #fff;
+        }
+
+        body.light .date-separator {
+            color: #333;
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.dark .control-btn {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        body.light .control-btn {
+            background: #ffffff;
+            color: #333;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+
+        .control-btn.active {
+            transform: scale(0.95);
         }
     </style>
 </head>
-<body>
-
-    <div class="clock-container">
-        <div class="card">
-            <div class="ampm" id="ampm"></div>
-            <div class="time-text" id="hours">12</div>
+<body class="dark">
+    <div class="container">
+        <div class="clock">
+            <div class="time-group">
+                <div class="flip-card" id="hour1">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-face flip-card-front">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="period" id="period"></div>
+                </div>
+                <div class="flip-card" id="hour2">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-face flip-card-front">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="separator">:</div>
+            
+            <div class="time-group">
+                <div class="flip-card" id="minute1">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-face flip-card-front">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-card" id="minute2">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-face flip-card-front">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                        <div class="flip-card-face flip-card-back">
+                            <div class="card-content">
+                                <div class="card-half top"><span class="number">0</span></div>
+                                <div class="card-half bottom"><span class="number">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="time-text" id="minutes">00</div>
+        <div class="date-display">
+            <div class="date-card" id="day1">0</div>
+            <div class="date-card" id="day2">0</div>
+            <div class="date-separator">.</div>
+            <div class="date-card" id="month1">0</div>
+            <div class="date-card" id="month2">0</div>
+            <div class="date-separator">.</div>
+            <div class="date-card" id="year1">0</div>
+            <div class="date-card" id="year2">0</div>
+            <div class="date-card" id="year3">0</div>
+            <div class="date-card" id="year4">0</div>
         </div>
-    </div>
 
-    <div class="controls">
-        <div class="control-item" id="btn-24h" onclick="toggleFormat()">24h</div>
-        <div class="control-item" onclick="toggleTheme()">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm1-17.93c3.94.49 7 3.85 7 7.93s-3.05 7.44-7 7.93V4.07z"/>
-            </svg>
+        <div class="controls">
+            <button class="control-btn" id="formatBtn">
+                <span id="formatIcon">24h</span>
+            </button>
+            <button class="control-btn" id="themeBtn">
+                <span id="themeIcon">◐</span>
+            </button>
+            <button class="control-btn" id="fullscreenBtn">
+                <span>⛶</span>
+            </button>
         </div>
     </div>
 
     <script>
-        // Standardwerte oder gespeicherte Werte laden
-        let is24Hour = localStorage.getItem('is24Hour') === 'true';
-        let isLightMode = localStorage.getItem('isLightMode') === 'true';
+        let is24Hour = true;
+        let isDark = true;
 
-        // Initialisierung beim Laden
-        if (isLightMode) {
-            document.body.classList.add('light-mode');
+        function flipCard(card, newValue) {
+            const front = card.querySelector('.flip-card-front .number');
+            const back = card.querySelector('.flip-card-back .number');
+            const currentValue = front.textContent;
+
+            if (currentValue !== newValue) {
+                back.textContent = newValue;
+                back.parentElement.parentElement.querySelectorAll('.number').forEach(n => n.textContent = newValue);
+                
+                card.classList.add('flipping');
+                
+                setTimeout(() => {
+                    front.textContent = newValue;
+                    front.parentElement.parentElement.querySelectorAll('.number').forEach(n => n.textContent = newValue);
+                    card.classList.remove('flipping');
+                }, 600);
+            }
         }
-        updateFormatButton();
 
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
-            let minutes = now.getMinutes();
-            let ampmText = '';
-
+            const minutes = now.getMinutes();
+            
+            let displayHours = hours;
+            let period = '';
+            
             if (!is24Hour) {
-                // 12-Stunden Logik
-                const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; 
-                ampmText = ampm;
+                period = hours >= 12 ? 'PM' : 'AM';
+                displayHours = hours % 12;
+                if (displayHours === 0) displayHours = 12;
             }
-
-            const strHours = hours < 10 ? '0' + hours : hours;
-            const strMinutes = minutes < 10 ? '0' + minutes : minutes;
-
-            document.getElementById('hours').innerText = strHours;
-            document.getElementById('minutes').innerText = strMinutes;
-            document.getElementById('ampm').innerText = ampmText;
+            
+            const h1 = Math.floor(displayHours / 10).toString();
+            const h2 = (displayHours % 10).toString();
+            const m1 = Math.floor(minutes / 10).toString();
+            const m2 = (minutes % 10).toString();
+            
+            flipCard(document.getElementById('hour1'), h1);
+            flipCard(document.getElementById('hour2'), h2);
+            flipCard(document.getElementById('minute1'), m1);
+            flipCard(document.getElementById('minute2'), m2);
+            
+            document.getElementById('period').textContent = period;
+            
+            // Update date
+            const day = now.getDate();
+            const month = now.getMonth() + 1;
+            const year = now.getFullYear();
+            
+            document.getElementById('day1').textContent = Math.floor(day / 10);
+            document.getElementById('day2').textContent = day % 10;
+            document.getElementById('month1').textContent = Math.floor(month / 10);
+            document.getElementById('month2').textContent = month % 10;
+            document.getElementById('year1').textContent = Math.floor(year / 1000);
+            document.getElementById('year2').textContent = Math.floor((year % 1000) / 100);
+            document.getElementById('year3').textContent = Math.floor((year % 100) / 10);
+            document.getElementById('year4').textContent = year % 10;
         }
 
-        function toggleFormat() {
+        document.getElementById('formatBtn').addEventListener('click', function() {
             is24Hour = !is24Hour;
-            localStorage.setItem('is24Hour', is24Hour); // Speichern
-            updateFormatButton();
+            this.querySelector('#formatIcon').textContent = is24Hour ? '24h' : '12h';
+            this.classList.add('active');
+            setTimeout(() => this.classList.remove('active'), 200);
             updateClock();
-        }
+        });
 
-        function updateFormatButton() {
-            const btn = document.getElementById('btn-24h');
-            if (is24Hour) {
-                btn.classList.add('active');
-                btn.style.opacity = "1";
+        document.getElementById('themeBtn').addEventListener('click', function() {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark' : 'light';
+            this.querySelector('#themeIcon').textContent = isDark ? '◐' : '◑';
+            this.classList.add('active');
+            setTimeout(() => this.classList.remove('active'), 200);
+        });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
             } else {
-                btn.classList.remove('active');
-                btn.style.opacity = "0.5";
+                document.exitFullscreen();
             }
-        }
+            this.classList.add('active');
+            setTimeout(() => this.classList.remove('active'), 200);
+        });
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            isLightMode = document.body.classList.contains('light-mode');
-            localStorage.setItem('isLightMode', isLightMode); // Speichern
-        }
-
-        setInterval(updateClock, 1000);
         updateClock();
+        setInterval(updateClock, 1000);
     </script>
 </body>
 </html>
