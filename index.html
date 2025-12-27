@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip Clock</title>
+    <title>Professional Flip Clock</title>
     <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #1a1a1a;
+            --text-color: #e0e0e0;
+            --corner-radius: 12px;
+            --card-width: 140px;
+            --card-height: 160px;
+            --font-size: 110px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,328 +22,304 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow: hidden;
             transition: background-color 0.3s ease;
         }
 
+        /* Light Mode Variables override */
         body.light {
-            background: #e0e0e0;
-        }
-
-        body.dark {
-            background: #000;
+            --bg-color: #f0f0f0;
+            --card-bg: #ffffff;
+            --text-color: #333333;
         }
 
         .container {
-            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .clock {
             display: flex;
-            gap: 15px;
-            justify-content: center;
+            gap: 20px;
             align-items: center;
         }
 
         .time-group {
             display: flex;
-            gap: 8px;
+            gap: 10px;
+            position: relative; /* For AM/PM positioning context */
         }
 
-        .separator {
-            font-size: 80px;
+        /* Flip Card Base Styles */
+        .flip-container {
+            position: relative;
+            width: var(--card-width);
+            height: var(--card-height);
+            perspective: 800px;
+            border-radius: var(--corner-radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .time-segment {
+            width: 100%;
+            height: 100%;
+            font-size: var(--font-size);
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.5);
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
+            line-height: var(--card-height);
+            text-align: center;
         }
 
-        .flip-card {
-            position: relative;
-            width: 120px;
-            height: 140px;
-            perspective: 1000px;
-        }
-
-        .flip-card-inner {
+        .segment-display {
             position: relative;
             width: 100%;
             height: 100%;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
 
-        .flip-card.flipping .flip-card-inner {
-            transform: rotateX(-180deg);
-        }
-
-        .flip-card-face {
+        /* Top and Bottom Halves Styling */
+        .segment-display__top,
+        .segment-display__bottom,
+        .segment-overlay__top,
+        .segment-overlay__bottom {
             position: absolute;
+            left: 0;
             width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .flip-card-front {
-            transform: rotateX(0deg);
-        }
-
-        .flip-card-back {
-            transform: rotateX(180deg);
-        }
-
-        .card-content {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .card-half {
             height: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
             overflow: hidden;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            backface-visibility: hidden;
         }
 
-        body.dark .card-half {
-            background: #1a1a1a;
+        /* Top Half */
+        .segment-display__top,
+        .segment-overlay__top {
+            top: 0;
+            border-radius: var(--corner-radius) var(--corner-radius) 0 0;
+            line-height: var(--card-height); /* Align text vertically */
+            border-bottom: 1px solid rgba(0,0,0,0.5); /* The split line */
         }
-
-        body.light .card-half {
-            background: #ffffff;
-        }
-
-        .card-half::after {
+        
+        /* Gradient for Top Half (Depth effect) */
+        .segment-display__top::after,
+        .segment-overlay__top::after {
             content: '';
             position: absolute;
-            width: 100%;
-            height: 1px;
-        }
-
-        body.dark .card-half::after {
-            background: #000;
-        }
-
-        body.light .card-half::after {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .card-half.top::after {
-            bottom: 0;
-        }
-
-        .card-half.bottom::after {
             top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(0,0,0,0.1));
         }
 
-        .number {
-            font-size: 90px;
-            font-weight: 700;
-            line-height: 1;
+        /* Bottom Half */
+        .segment-display__bottom,
+        .segment-overlay__bottom {
+            bottom: 0;
+            border-radius: 0 0 var(--corner-radius) var(--corner-radius);
+            line-height: 0; /* Align text vertically for bottom half */
+            border-top: 1px solid rgba(255,255,255,0.05); /* Highlight for split line */
+        }
+
+        /* Gradient for Bottom Half (Depth effect) */
+        .segment-display__bottom::after,
+        .segment-overlay__bottom::after {
+            content: '';
             position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,255,255,0.02));
         }
 
-        body.dark .number {
-            color: #fff;
+        /* Overlay specific for animation */
+        .segment-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
         }
 
-        body.light .number {
-            color: #333;
+        .segment-overlay__top {
+            transform-origin: bottom;
         }
 
-        .card-half.top .number {
-            bottom: -45px;
+        .segment-overlay__bottom {
+            transform-origin: top;
+            transform: rotateX(90deg); /* Start hidden */
         }
 
-        .card-half.bottom .number {
-            top: -45px;
+        /* Animation Classes */
+        .segment-overlay.flip .segment-overlay__top {
+            animation: flip-top 0.6s ease-in;
         }
 
+        .segment-overlay.flip .segment-overlay__bottom {
+            animation: flip-bottom 0.6s ease-out 0.0s; /* Slight delay removed for snappier feel */
+        }
+
+        @keyframes flip-top {
+            0% { transform: rotateX(0deg); }
+            100% { transform: rotateX(-90deg); }
+        }
+
+        @keyframes flip-bottom {
+            0% { transform: rotateX(90deg); }
+            100% { transform: rotateX(0deg); }
+        }
+
+        /* AM/PM Indicator */
         .period {
             position: absolute;
-            top: 15px;
+            top: 12px;
             left: 15px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            opacity: 0.6;
+            color: #666;
+            z-index: 20;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        body.light .period { color: #999; }
+
+        /* Controls - Bottom Right Corner */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            opacity: 0.5;
+            transition: opacity 0.3s;
         }
 
-        body.dark .period {
+        .controls:hover {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 5px;
+            font-family: inherit;
+        }
+
+        .control-btn:hover {
             color: #fff;
         }
-
-        body.light .period {
-            color: #333;
+        
+        body.light .control-btn:hover {
+            color: #000;
         }
 
+        /* Date Section - Clean and minimal below */
         .date-display {
             margin-top: 30px;
             display: flex;
             gap: 5px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .date-card {
-            width: 45px;
-            height: 55px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        body.dark .date-card {
-            background: #1a1a1a;
-            color: #fff;
-        }
-
-        body.light .date-card {
-            background: #ffffff;
-            color: #333;
-        }
-
-        .date-separator {
-            font-size: 32px;
-            font-weight: 700;
-            opacity: 0.5;
-        }
-
-        body.dark .date-separator {
-            color: #fff;
-        }
-
-        body.light .date-separator {
-            color: #333;
-        }
-
-        .controls {
-            margin-top: 40px;
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .control-btn {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 10px;
             font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        body.dark .control-btn {
-            background: #1a1a1a;
-            color: #fff;
-        }
-
-        body.light .control-btn {
-            background: #ffffff;
-            color: #333;
-        }
-
-        .control-btn:hover {
-            transform: scale(1.05);
+            font-weight: 500;
+            color: #555;
             opacity: 0.8;
         }
+        
+        body.light .date-display { color: #888; }
 
-        .control-btn.active {
-            transform: scale(0.95);
+        /* Hide the massive date cards, keep functionality but style minimally */
+        .date-card {
+            background: transparent;
+            color: inherit;
+            font-size: inherit;
+            width: auto;
+            height: auto;
+            padding: 0 1px;
+        }
+        .date-separator {
+            font-size: inherit;
+            color: inherit;
+        }
+
+        /* Responsive adjustments for Notion widgets */
+        @media (max-width: 600px) {
+            :root {
+                --card-width: 80px;
+                --card-height: 100px;
+                --font-size: 60px;
+                --corner-radius: 8px;
+            }
+            .period { font-size: 10px; top: 8px; left: 8px; }
         }
     </style>
 </head>
 <body class="dark">
+    
     <div class="container">
         <div class="clock">
             <div class="time-group">
-                <div class="flip-card" id="hour1">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-face flip-card-front">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
-                            </div>
-                        </div>
-                        <div class="flip-card-face flip-card-back">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
+                <div class="period" id="period"></div>
+
+                <div class="flip-container" id="hour1">
+                    <div class="time-segment">
+                        <div class="segment-display">
+                            <div class="segment-display__top">0</div>
+                            <div class="segment-display__bottom">0</div>
+                            <div class="segment-overlay">
+                                <div class="segment-overlay__top">0</div>
+                                <div class="segment-overlay__bottom">0</div>
                             </div>
                         </div>
                     </div>
-                    <div class="period" id="period"></div>
                 </div>
-                <div class="flip-card" id="hour2">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-face flip-card-front">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
-                            </div>
-                        </div>
-                        <div class="flip-card-face flip-card-back">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
+                <div class="flip-container" id="hour2">
+                    <div class="time-segment">
+                        <div class="segment-display">
+                            <div class="segment-display__top">0</div>
+                            <div class="segment-display__bottom">0</div>
+                            <div class="segment-overlay">
+                                <div class="segment-overlay__top">0</div>
+                                <div class="segment-overlay__bottom">0</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="separator">:</div>
-            
             <div class="time-group">
-                <div class="flip-card" id="minute1">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-face flip-card-front">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
-                            </div>
-                        </div>
-                        <div class="flip-card-face flip-card-back">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
+                <div class="flip-container" id="minute1">
+                    <div class="time-segment">
+                        <div class="segment-display">
+                            <div class="segment-display__top">0</div>
+                            <div class="segment-display__bottom">0</div>
+                            <div class="segment-overlay">
+                                <div class="segment-overlay__top">0</div>
+                                <div class="segment-overlay__bottom">0</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="flip-card" id="minute2">
-                    <div class="flip-card-inner">
-                        <div class="flip-card-face flip-card-front">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
-                            </div>
-                        </div>
-                        <div class="flip-card-face flip-card-back">
-                            <div class="card-content">
-                                <div class="card-half top"><span class="number">0</span></div>
-                                <div class="card-half bottom"><span class="number">0</span></div>
+                <div class="flip-container" id="minute2">
+                    <div class="time-segment">
+                        <div class="segment-display">
+                            <div class="segment-display__top">0</div>
+                            <div class="segment-display__bottom">0</div>
+                            <div class="segment-overlay">
+                                <div class="segment-overlay__top">0</div>
+                                <div class="segment-overlay__bottom">0</div>
                             </div>
                         </div>
                     </div>
@@ -347,47 +333,76 @@
             <div class="date-separator">.</div>
             <div class="date-card" id="month1">0</div>
             <div class="date-card" id="month2">0</div>
-            <div class="date-separator">.</div>
-            <div class="date-card" id="year1">0</div>
-            <div class="date-card" id="year2">0</div>
-            <div class="date-card" id="year3">0</div>
-            <div class="date-card" id="year4">0</div>
+            <div class="date-card" style="display:none;" id="year1">0</div> <div class="date-card" style="display:none;" id="year2">0</div>
+            <div class="date-card" style="display:none;" id="year3">0</div>
+            <div class="date-card" style="display:none;" id="year4">0</div>
         </div>
+    </div>
 
-        <div class="controls">
-            <button class="control-btn" id="formatBtn">
-                <span id="formatIcon">24h</span>
-            </button>
-            <button class="control-btn" id="themeBtn">
-                <span id="themeIcon">◐</span>
-            </button>
-            <button class="control-btn" id="fullscreenBtn">
-                <span>⛶</span>
-            </button>
-        </div>
+    <div class="controls">
+        <button class="control-btn" id="formatBtn">
+            <span id="formatIcon">24h</span>
+        </button>
+        <button class="control-btn" id="themeBtn">
+            <span id="themeIcon">◐</span>
+        </button>
+        <button class="control-btn" id="fullscreenBtn">
+            <span>⛶</span>
+        </button>
     </div>
 
     <script>
         let is24Hour = true;
         let isDark = true;
 
-        function flipCard(card, newValue) {
-            const front = card.querySelector('.flip-card-front .number');
-            const back = card.querySelector('.flip-card-back .number');
-            const currentValue = front.textContent;
+        function getTimeSegmentElements(segmentElement) {
+            const segmentDisplay = segmentElement.querySelector('.segment-display');
+            const segmentDisplayTop = segmentDisplay.querySelector('.segment-display__top');
+            const segmentDisplayBottom = segmentDisplay.querySelector('.segment-display__bottom');
+            const segmentOverlay = segmentDisplay.querySelector('.segment-overlay');
+            const segmentOverlayTop = segmentOverlay.querySelector('.segment-overlay__top');
+            const segmentOverlayBottom = segmentOverlay.querySelector('.segment-overlay__bottom');
 
-            if (currentValue !== newValue) {
-                back.textContent = newValue;
-                back.parentElement.parentElement.querySelectorAll('.number').forEach(n => n.textContent = newValue);
-                
-                card.classList.add('flipping');
-                
-                setTimeout(() => {
-                    front.textContent = newValue;
-                    front.parentElement.parentElement.querySelectorAll('.number').forEach(n => n.textContent = newValue);
-                    card.classList.remove('flipping');
-                }, 600);
+            return {
+                segmentDisplayTop,
+                segmentDisplayBottom,
+                segmentOverlay,
+                segmentOverlayTop,
+                segmentOverlayBottom,
+            };
+        }
+
+        function updateSegmentValues(displayElement, overlayElement, value) {
+            displayElement.textContent = value;
+            overlayElement.textContent = value;
+        }
+
+        function updateTimeSegment(segmentElement, timeValue) {
+            const segmentElements = getTimeSegmentElements(segmentElement);
+
+            if (parseInt(segmentElements.segmentDisplayTop.textContent, 10) === timeValue) {
+                return;
             }
+
+            segmentElements.segmentOverlay.classList.add('flip');
+
+            updateSegmentValues(
+                segmentElements.segmentDisplayTop,
+                segmentElements.segmentOverlayBottom,
+                timeValue
+            );
+
+            function finishAnimation() {
+                segmentElements.segmentOverlay.classList.remove('flip');
+                updateSegmentValues(
+                    segmentElements.segmentDisplayBottom,
+                    segmentElements.segmentOverlayTop,
+                    timeValue
+                );
+                this.removeEventListener('animationend', finishAnimation);
+            }
+
+            segmentElements.segmentOverlay.addEventListener('animationend', finishAnimation);
         }
 
         function updateClock() {
@@ -402,21 +417,28 @@
                 period = hours >= 12 ? 'PM' : 'AM';
                 displayHours = hours % 12;
                 if (displayHours === 0) displayHours = 12;
+            } else {
+                period = ''; // No AM/PM in 24h mode usually
             }
             
-            const h1 = Math.floor(displayHours / 10).toString();
-            const h2 = (displayHours % 10).toString();
-            const m1 = Math.floor(minutes / 10).toString();
-            const m2 = (minutes % 10).toString();
+            const h1 = Math.floor(displayHours / 10);
+            const h2 = displayHours % 10;
+            const m1 = Math.floor(minutes / 10);
+            const m2 = minutes % 10;
             
-            flipCard(document.getElementById('hour1'), h1);
-            flipCard(document.getElementById('hour2'), h2);
-            flipCard(document.getElementById('minute1'), m1);
-            flipCard(document.getElementById('minute2'), m2);
+            const hour1Container = document.getElementById('hour1');
+            const hour2Container = document.getElementById('hour2');
+            const minute1Container = document.getElementById('minute1');
+            const minute2Container = document.getElementById('minute2');
+            
+            updateTimeSegment(hour1Container.querySelector('.time-segment'), h1);
+            updateTimeSegment(hour2Container.querySelector('.time-segment'), h2);
+            updateTimeSegment(minute1Container.querySelector('.time-segment'), m1);
+            updateTimeSegment(minute2Container.querySelector('.time-segment'), m2);
             
             document.getElementById('period').textContent = period;
             
-            // Update date
+            // Date Logic preserved
             const day = now.getDate();
             const month = now.getMonth() + 1;
             const year = now.getFullYear();
@@ -425,6 +447,7 @@
             document.getElementById('day2').textContent = day % 10;
             document.getElementById('month1').textContent = Math.floor(month / 10);
             document.getElementById('month2').textContent = month % 10;
+            // Year kept in DOM but hidden via CSS for cleaner look
             document.getElementById('year1').textContent = Math.floor(year / 1000);
             document.getElementById('year2').textContent = Math.floor((year % 1000) / 100);
             document.getElementById('year3').textContent = Math.floor((year % 100) / 10);
@@ -434,8 +457,6 @@
         document.getElementById('formatBtn').addEventListener('click', function() {
             is24Hour = !is24Hour;
             this.querySelector('#formatIcon').textContent = is24Hour ? '24h' : '12h';
-            this.classList.add('active');
-            setTimeout(() => this.classList.remove('active'), 200);
             updateClock();
         });
 
@@ -443,8 +464,6 @@
             isDark = !isDark;
             document.body.className = isDark ? 'dark' : 'light';
             this.querySelector('#themeIcon').textContent = isDark ? '◐' : '◑';
-            this.classList.add('active');
-            setTimeout(() => this.classList.remove('active'), 200);
         });
 
         document.getElementById('fullscreenBtn').addEventListener('click', function() {
@@ -453,8 +472,6 @@
             } else {
                 document.exitFullscreen();
             }
-            this.classList.add('active');
-            setTimeout(() => this.classList.remove('active'), 200);
         });
 
         updateClock();
