@@ -3,23 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Flip Clock</title>
+    <title>Ultimate Flip Clock Dashboard V10 - Clean UI</title>
     <style>
         :root {
+            /* --- FARBPALETTE --- */
             --bg-color: #000000;
             --card-bg: #1a1a1a;
             --text-color: #e0e0e0;
+            
+            /* Ring Design */
+            --ring-track-color: rgba(255, 255, 255, 0.08); 
+            --accent-color: #e0e0e0;     
+            
             --corner-radius: 12px;
-            --card-width: 140px;
-            --card-height: 160px;
-            --font-size: 110px;
+            --card-width: 120px;
+            --card-height: 140px;
+            --font-size: 100px;
+            
+            --widget-size: 680px; 
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -30,386 +34,474 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Light Mode Variables override */
         body.light {
-            --bg-color: #f0f0f0;
+            --bg-color: #f4f4f4;
             --card-bg: #ffffff;
             --text-color: #333333;
+            --ring-track-color: rgba(0, 0, 0, 0.05);
+            --accent-color: #333333;
         }
 
+        /* --- WRAPPER --- */
+        .dashboard-wrapper {
+            position: relative;
+            width: var(--widget-size);
+            height: var(--widget-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: translateY(-20px);
+        }
+
+        /* --- SVG CHART LAYER --- */
+        .charts-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1; 
+            pointer-events: none;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 1s ease-in-out, stroke 0.3s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            stroke-linecap: round;
+        }
+
+        .progress-ring__bg {
+            stroke: var(--ring-track-color);
+            transition: stroke 0.3s;
+        }
+
+        /* --- CONTAINER (UHR) --- */
         .container {
             position: relative;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .clock {
-            display: flex;
+            justify-content: center;
             gap: 20px;
-            align-items: center;
+            transform: scale(0.85) translateY(75px); 
         }
 
-        .time-group {
-            display: flex;
-            gap: 10px;
-            position: relative; /* For AM/PM positioning context */
-        }
+        /* --- UHR STYLE --- */
+        .clock { display: flex; gap: 15px; align-items: center; }
+        .time-group { display: flex; gap: 8px; position: relative; }
 
-        /* Flip Card Base Styles */
         .flip-container {
             position: relative;
             width: var(--card-width);
             height: var(--card-height);
             perspective: 800px;
             border-radius: var(--corner-radius);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .time-segment {
-            width: 100%;
-            height: 100%;
-            font-size: var(--font-size);
-            font-weight: 700;
-            line-height: var(--card-height);
-            text-align: center;
+            width: 100%; height: 100%;
+            font-size: var(--font-size); font-weight: 700;
+            line-height: var(--card-height); text-align: center;
         }
 
-        .segment-display {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
+        .segment-display { position: relative; width: 100%; height: 100%; }
 
-        /* Top and Bottom Halves Styling */
-        .segment-display__top,
-        .segment-display__bottom,
-        .segment-overlay__top,
-        .segment-overlay__bottom {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            overflow: hidden;
-            background-color: var(--card-bg);
-            color: var(--text-color);
+        .segment-display__top, .segment-display__bottom, 
+        .segment-overlay__top, .segment-overlay__bottom {
+            position: absolute; left: 0; width: 100%; height: 50%; overflow: hidden;
+            background-color: var(--card-bg); color: var(--text-color);
             backface-visibility: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Top Half */
-        .segment-display__top,
-        .segment-overlay__top {
-            top: 0;
-            border-radius: var(--corner-radius) var(--corner-radius) 0 0;
-            line-height: var(--card-height); /* Align text vertically */
-            border-bottom: 1px solid rgba(0,0,0,0.5); /* The split line */
+        .segment-display__top, .segment-overlay__top {
+            top: 0; border-radius: var(--corner-radius) var(--corner-radius) 0 0;
+            line-height: var(--card-height);
+            border-bottom: 1px solid rgba(0,0,0,0.15); 
         }
         
-        /* Gradient for Top Half (Depth effect) */
-        .segment-display__top::after,
-        .segment-overlay__top::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .segment-display__top::after, .segment-overlay__top::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(0,0,0,0.1));
+            pointer-events: none;
         }
 
-        /* Bottom Half */
-        .segment-display__bottom,
-        .segment-overlay__bottom {
-            bottom: 0;
-            border-radius: 0 0 var(--corner-radius) var(--corner-radius);
-            line-height: 0; /* Align text vertically for bottom half */
-            border-top: 1px solid rgba(255,255,255,0.05); /* Highlight for split line */
+        .segment-display__bottom, .segment-overlay__bottom {
+            bottom: 0; border-radius: 0 0 var(--corner-radius) var(--corner-radius);
+            line-height: 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* Gradient for Bottom Half (Depth effect) */
-        .segment-display__bottom::after,
-        .segment-overlay__bottom::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,255,255,0.02));
-        }
+        .segment-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        .segment-overlay__top { transform-origin: bottom; }
+        .segment-overlay__bottom { transform-origin: top; transform: rotateX(90deg); }
+        .segment-overlay.flip .segment-overlay__top { animation: flip-top 0.6s ease-in; }
+        .segment-overlay.flip .segment-overlay__bottom { animation: flip-bottom 0.6s ease-out; }
 
-        /* Overlay specific for animation */
-        .segment-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-        }
+        @keyframes flip-top { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(-90deg); } }
+        @keyframes flip-bottom { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0deg); } }
 
-        .segment-overlay__top {
-            transform-origin: bottom;
-        }
-
-        .segment-overlay__bottom {
-            transform-origin: top;
-            transform: rotateX(90deg); /* Start hidden */
-        }
-
-        /* Animation Classes */
-        .segment-overlay.flip .segment-overlay__top {
-            animation: flip-top 0.6s ease-in;
-        }
-
-        .segment-overlay.flip .segment-overlay__bottom {
-            animation: flip-bottom 0.6s ease-out 0.0s; /* Slight delay removed for snappier feel */
-        }
-
-        @keyframes flip-top {
-            0% { transform: rotateX(0deg); }
-            100% { transform: rotateX(-90deg); }
-        }
-
-        @keyframes flip-bottom {
-            0% { transform: rotateX(90deg); }
-            100% { transform: rotateX(0deg); }
-        }
-
-        /* AM/PM Indicator */
         .period {
-            position: absolute;
-            top: 12px;
-            left: 15px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #666;
-            z-index: 20;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            position: absolute; top: 12px; left: 12px;
+            font-size: 14px; font-weight: 700; opacity: 0.5; z-index: 20; letter-spacing: 1px; text-transform: uppercase;
         }
-        body.light .period { color: #999; }
 
-        /* Controls - Bottom Right Corner */
+        .day-name {
+            position: absolute; bottom: 12px; right: 12px;
+            font-size: 14px; font-weight: 700; opacity: 0.6; z-index: 20; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* --- DATUM --- */
+        .date-display { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 5px; }
+        .date-card {
+            background-color: var(--card-bg); color: var(--text-color);
+            width: 36px; height: 46px; border-radius: 6px; font-size: 20px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: background-color 0.3s, color 0.3s;
+        }
+        .date-separator { font-size: 20px; font-weight: 700; opacity: 0.5; }
+
+        /* --- CONTROLS (NEW DESIGN) --- */
         .controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            opacity: 0.5;
-            transition: opacity 0.3s;
+            display: flex; 
+            gap: 4px; /* Schöner Abstand */
+            background-color: var(--card-bg); 
+            padding: 0px 5px; 
+            border-radius: 7px; /* Pill-Shape für modernes Aussehen */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-top: 5px;
+            align-items: center;
         }
-
-        .controls:hover {
-            opacity: 1;
-        }
-
+        
         .control-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-color);
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 5px;
-            font-family: inherit;
+            background: transparent; 
+            border: none; 
+            color: var(--text-color); 
+            cursor: pointer; 
+            opacity: 0.5; 
+            transition: all 0.3s ease;
+            width: 40px; 
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .control-btn:hover {
-            color: #fff;
+        .control-btn:hover, .control-btn.active { 
+            opacity: 1; 
+            background: rgba(255,255,255,0.05); /* Subtiler Hover-Hintergrund */
+            transform: translateY(-2px);
         }
         
         body.light .control-btn:hover {
-            color: #000;
+            background: rgba(0,0,0,0.05);
         }
 
-        /* Date Section - Clean and minimal below */
-        .date-display {
-            margin-top: 30px;
+        /* SVG Styles für die Icons */
+        .control-icon {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* --- STATS LEISTE (VERTIKAL) --- */
+        .stats-display {
             display: flex;
+            flex-direction: column;
             gap: 5px;
-            font-size: 16px;
-            font-weight: 500;
-            color: #555;
-            opacity: 0.8;
+            align-items: center;
+            font-size: 13px; font-weight: 500; color: var(--text-color); opacity: 0.8;
+            text-transform: uppercase; letter-spacing: 1px;
+            background: rgba(129, 33, 33, 0.03);
+            padding: 10px 25px; border-radius: 12px;
+            margin-top: 5px; 
+            min-width: 140px;
         }
-        
-        body.light .date-display { color: #888; }
+        .stat-item { display: flex; justify-content: space-between; width: 100%; gap: 10px; }
+        .stat-value { font-weight: 700; color: var(--text-color); }
 
-        /* Hide the massive date cards, keep functionality but style minimally */
-        .date-card {
-            background: transparent;
-            color: inherit;
-            font-size: inherit;
-            width: auto;
-            height: auto;
-            padding: 0 1px;
+        /* --- SETTINGS MENU --- */
+        .settings-menu {
+            position: absolute; bottom: 50px; background: #222; padding: 15px; border-radius: 12px;
+            display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 100;
+            opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s ease; width: 220px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .date-separator {
-            font-size: inherit;
-            color: inherit;
-        }
+        body.light .settings-menu { background: #fff; border: 1px solid rgba(0,0,0,0.1); color: #333; }
+        .settings-menu.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .color-option { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #ccc; }
+        body.light .color-option { color: #555; }
+        .color-input-wrapper { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.2); cursor: pointer; }
+        body.light .color-input-wrapper { border: 2px solid rgba(0,0,0,0.2); }
+        input[type="color"] { width: 200%; height: 200%; transform: translate(-25%, -25%); border: none; cursor: pointer; }
+        .reset-btn { margin-top: 5px; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 6px; color: inherit; font-size: 11px; cursor: pointer; font-weight: 700; text-transform: uppercase; }
 
-        /* Responsive adjustments for Notion widgets */
-        @media (max-width: 600px) {
-            :root {
-                --card-width: 80px;
-                --card-height: 100px;
-                --font-size: 60px;
-                --corner-radius: 8px;
-            }
-            .period { font-size: 10px; top: 8px; left: 8px; }
+        /* Responsive */
+        @media (max-width: 700px) {
+            :root { --widget-size: 100vw; --card-width: 60px; --card-height: 80px; --font-size: 45px; }
+            .container { gap: 10px; transform: scale(0.75) translateY(-10px); }
+            .date-card { width: 25px; height: 35px; font-size: 16px; }
+            .stats-display { font-size: 10px; }
         }
     </style>
 </head>
 <body class="dark">
     
-    <div class="container">
-        <div class="clock">
-            <div class="time-group">
-                <div class="period" id="period"></div>
+    <div class="dashboard-wrapper">
+        <svg class="charts-layer" viewBox="0 0 500 500">
+            <circle class="progress-ring__bg" cx="250" cy="250" r="245" fill="none" stroke-width="3"></circle>
+            <circle class="progress-ring__bg" cx="250" cy="250" r="230" fill="none" stroke-width="3"></circle>
+            <circle class="progress-ring__bg" cx="250" cy="250" r="215" fill="none" stroke-width="3"></circle>
 
-                <div class="flip-container" id="hour1">
-                    <div class="time-segment">
-                        <div class="segment-display">
-                            <div class="segment-display__top">0</div>
-                            <div class="segment-display__bottom">0</div>
-                            <div class="segment-overlay">
-                                <div class="segment-overlay__top">0</div>
-                                <div class="segment-overlay__bottom">0</div>
-                            </div>
-                        </div>
+            <circle class="progress-ring__circle" id="ringYear" cx="250" cy="250" r="245" fill="none" stroke="var(--accent-color)" stroke-width="3" style="opacity: 1;"></circle>
+            <circle class="progress-ring__circle" id="ringMonth" cx="250" cy="250" r="230" fill="none" stroke="var(--accent-color)" stroke-width="3" style="opacity: 0.8;"></circle>
+            <circle class="progress-ring__circle" id="ringDay" cx="250" cy="250" r="215" fill="none" stroke="var(--accent-color)" stroke-width="3" style="opacity: 0.6;"></circle>
+        </svg>
+
+        <div class="container">
+            <div class="clock">
+                <div class="time-group">
+                    <div class="period" id="period"></div>
+                    <div class="flip-container" id="hour1">
+                        <div class="time-segment"><div class="segment-display"><div class="segment-display__top">0</div><div class="segment-display__bottom">0</div><div class="segment-overlay"><div class="segment-overlay__top">0</div><div class="segment-overlay__bottom">0</div></div></div></div>
+                    </div>
+                    <div class="flip-container" id="hour2">
+                        <div class="time-segment"><div class="segment-display"><div class="segment-display__top">0</div><div class="segment-display__bottom">0</div><div class="segment-overlay"><div class="segment-overlay__top">0</div><div class="segment-overlay__bottom">0</div></div></div></div>
                     </div>
                 </div>
-                <div class="flip-container" id="hour2">
-                    <div class="time-segment">
-                        <div class="segment-display">
-                            <div class="segment-display__top">0</div>
-                            <div class="segment-display__bottom">0</div>
-                            <div class="segment-overlay">
-                                <div class="segment-overlay__top">0</div>
-                                <div class="segment-overlay__bottom">0</div>
-                            </div>
-                        </div>
+                
+                <div class="time-group">
+                    <div class="flip-container" id="minute1">
+                        <div class="time-segment"><div class="segment-display"><div class="segment-display__top">0</div><div class="segment-display__bottom">0</div><div class="segment-overlay"><div class="segment-overlay__top">0</div><div class="segment-overlay__bottom">0</div></div></div></div>
+                    </div>
+                    <div class="flip-container" id="minute2">
+                        <div class="time-segment"><div class="segment-display"><div class="segment-display__top">0</div><div class="segment-display__bottom">0</div><div class="segment-overlay"><div class="segment-overlay__top">0</div><div class="segment-overlay__bottom">0</div></div></div></div>
+                        <div class="day-name" id="dayName">SUN</div>
                     </div>
                 </div>
             </div>
-            
-            <div class="time-group">
-                <div class="flip-container" id="minute1">
-                    <div class="time-segment">
-                        <div class="segment-display">
-                            <div class="segment-display__top">0</div>
-                            <div class="segment-display__bottom">0</div>
-                            <div class="segment-overlay">
-                                <div class="segment-overlay__top">0</div>
-                                <div class="segment-overlay__bottom">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flip-container" id="minute2">
-                    <div class="time-segment">
-                        <div class="segment-display">
-                            <div class="segment-display__top">0</div>
-                            <div class="segment-display__bottom">0</div>
-                            <div class="segment-overlay">
-                                <div class="segment-overlay__top">0</div>
-                                <div class="segment-overlay__bottom">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+            <div class="date-display">
+                <div class="date-card" id="day1">0</div>
+                <div class="date-card" id="day2">0</div>
+                <div class="date-separator">.</div>
+                <div class="date-card" id="month1">0</div>
+                <div class="date-card" id="month2">0</div>
+                <div class="date-separator">.</div>
+                <div class="date-card" id="year1">2</div>
+                <div class="date-card" id="year2">0</div>
+                <div class="date-card" id="year3">2</div>
+                <div class="date-card" id="year4">5</div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="formatBtn" title="12h/24h Format">
+                    <svg class="control-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="themeBtn" title="Theme Switch">
+                    <svg class="control-icon" viewBox="0 0 24 24" id="themeSvg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="settingsBtn" title="Colors">
+                    <svg class="control-icon" viewBox="0 0 24 24">
+                        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.55 0 1-.45 1-1 0-2.5 2-3 4.5-3 .55 0 1 .45 1 1 0 1-1 1.5 0 3 .5 1.5-1 3.5-2.9 4-5.1.4-.5.6-1.1.6-1.7 0-1.9-1.3-3.6-3.1-4.2C15.3 15.6 15 14.8 15 14c0-3.3-2.7-6-6-6-2.5 0-4.6 1.5-5.6 3.7C3.2 11.2 3 10.6 3 10c0-5 4-9 9-9z"></path>
+                    </svg>
+                </button>
+                
+                <button class="control-btn" id="fullscreenBtn" title="Fullscreen">
+                    <svg class="control-icon" viewBox="0 0 24 24">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="stats-display">
+                <div class="stat-item"><span>Year</span><span class="stat-value" id="textYear">0%</span></div>
+                <div class="stat-item"><span>Month</span><span class="stat-value" id="textMonth">0%</span></div>
+                <div class="stat-item"><span>Day</span><span class="stat-value" id="textDay">0%</span></div>
             </div>
         </div>
 
-        <div class="date-display">
-            <div class="date-card" id="day1">0</div>
-            <div class="date-card" id="day2">0</div>
-            <div class="date-separator">.</div>
-            <div class="date-card" id="month1">0</div>
-            <div class="date-card" id="month2">0</div>
-            <div class="date-card" style="display:none;" id="year1">0</div> <div class="date-card" style="display:none;" id="year2">0</div>
-            <div class="date-card" style="display:none;" id="year3">0</div>
-            <div class="date-card" style="display:none;" id="year4">0</div>
+        <div class="settings-menu" id="settingsMenu">
+            <div class="color-option"><span>Hintergrund</span><div class="color-input-wrapper"><input type="color" id="bgColorPicker" value="#000000"></div></div>
+            <div class="color-option"><span>Karten</span><div class="color-input-wrapper"><input type="color" id="cardColorPicker" value="#1a1a1a"></div></div>
+            <div class="color-option"><span>Akzent</span><div class="color-input-wrapper"><input type="color" id="textColorPicker" value="#e0e0e0"></div></div>
+            <button class="reset-btn" id="resetColorsBtn">Farben zurücksetzen</button>
         </div>
-    </div>
-
-    <div class="controls">
-        <button class="control-btn" id="formatBtn">
-            <span id="formatIcon">24h</span>
-        </button>
-        <button class="control-btn" id="themeBtn">
-            <span id="themeIcon">◐</span>
-        </button>
-        <button class="control-btn" id="fullscreenBtn">
-            <span>⛶</span>
-        </button>
     </div>
 
     <script>
         let is24Hour = true;
         let isDark = true;
+        const root = document.documentElement;
+        const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+        // --- ELEMENTS ---
+        const settingsMenu = document.getElementById('settingsMenu');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const bgPicker = document.getElementById('bgColorPicker');
+        const cardPicker = document.getElementById('cardColorPicker');
+        const textPicker = document.getElementById('textColorPicker');
+
+        const ringYear = document.getElementById('ringYear');
+        const ringMonth = document.getElementById('ringMonth');
+        const ringDay = document.getElementById('ringDay');
+        
+        const textYear = document.getElementById('textYear');
+        const textMonth = document.getElementById('textMonth');
+        const textDay = document.getElementById('textDay');
+
+        // Radii definieren
+        const radiusYear = 245;
+        const radiusMonth = 230;
+        const radiusDay = 215;
+
+        const circYear = 2 * Math.PI * radiusYear;
+        const circMonth = 2 * Math.PI * radiusMonth;
+        const circDay = 2 * Math.PI * radiusDay;
+
+        function initRings() {
+            ringYear.style.strokeDasharray = `${circYear} ${circYear}`;
+            ringYear.style.strokeDashoffset = circYear;
+            ringMonth.style.strokeDasharray = `${circMonth} ${circMonth}`;
+            ringMonth.style.strokeDashoffset = circMonth;
+            ringDay.style.strokeDasharray = `${circDay} ${circDay}`;
+            ringDay.style.strokeDashoffset = circDay;
+        }
+        initRings();
+
+        // --- HELPERS ---
+        function updateCSSVariable(variable, value) { root.style.setProperty(variable, value); }
+        
+        function setProgress(circle, circumference, percent) {
+            const p = Math.min(Math.max(percent, 0), 100);
+            const offset = circumference - (p / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function isLeapYear(year) {
+            return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
+        }
+
+        function getDayOfYear(date) {
+            const start = new Date(date.getFullYear(), 0, 0);
+            const diff = date - start;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);
+        }
+
+        function updateCharts(now) {
+            const totalSecondsInDay = 86400;
+            const currentSeconds = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+            
+            // Day
+            const dayPercent = (currentSeconds / totalSecondsInDay) * 100;
+            setProgress(ringDay, circDay, dayPercent);
+            textDay.textContent = Math.floor(dayPercent) + "%";
+
+            // Month
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const currentDayOfMonth = now.getDate();
+            const exactDayProgress = (currentDayOfMonth - 1) + (currentSeconds / totalSecondsInDay);
+            const monthPercent = (exactDayProgress / daysInMonth) * 100;
+            setProgress(ringMonth, circMonth, monthPercent);
+            textMonth.textContent = Math.floor(monthPercent) + "%";
+
+            // Year
+            const totalDaysInYear = isLeapYear(now.getFullYear()) ? 366 : 365;
+            const dayOfYear = getDayOfYear(now);
+            const exactYearProgress = (dayOfYear - 1) + (currentSeconds / totalSecondsInDay);
+            const yearPercent = (exactYearProgress / totalDaysInYear) * 100;
+            setProgress(ringYear, circYear, yearPercent);
+            textYear.textContent = Math.floor(yearPercent) + "%";
+        }
+
+        // --- LOGIC ---
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsMenu.classList.toggle('open');
+            settingsBtn.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!settingsMenu.contains(e.target) && !settingsBtn.contains(e.target)) {
+                settingsMenu.classList.remove('open');
+                settingsBtn.classList.remove('active');
+            }
+        });
+
+        bgPicker.addEventListener('input', (e) => {
+            updateCSSVariable('--bg-color', e.target.value);
+            document.body.style.backgroundColor = e.target.value;
+        });
+        cardPicker.addEventListener('input', (e) => { updateCSSVariable('--card-bg', e.target.value); });
+        textPicker.addEventListener('input', (e) => { 
+            updateCSSVariable('--text-color', e.target.value); 
+            updateCSSVariable('--accent-color', e.target.value); 
+        });
+
+        document.getElementById('resetColorsBtn').addEventListener('click', () => {
+            document.body.style.backgroundColor = ''; root.style = '';
+            applyTheme();
+            setTimeout(() => {
+                const isD = document.body.classList.contains('dark');
+                bgPicker.value=isD?"#000000":"#f0f0f0"; cardPicker.value=isD?"#1a1a1a":"#ffffff"; textPicker.value=isD?"#e0e0e0":"#333333";
+            }, 100);
+            settingsMenu.classList.remove('open');
+        });
 
         function getTimeSegmentElements(segmentElement) {
             const segmentDisplay = segmentElement.querySelector('.segment-display');
-            const segmentDisplayTop = segmentDisplay.querySelector('.segment-display__top');
-            const segmentDisplayBottom = segmentDisplay.querySelector('.segment-display__bottom');
-            const segmentOverlay = segmentDisplay.querySelector('.segment-overlay');
-            const segmentOverlayTop = segmentOverlay.querySelector('.segment-overlay__top');
-            const segmentOverlayBottom = segmentOverlay.querySelector('.segment-overlay__bottom');
-
             return {
-                segmentDisplayTop,
-                segmentDisplayBottom,
-                segmentOverlay,
-                segmentOverlayTop,
-                segmentOverlayBottom,
+                segmentDisplayTop: segmentDisplay.querySelector('.segment-display__top'),
+                segmentDisplayBottom: segmentDisplay.querySelector('.segment-display__bottom'),
+                segmentOverlay: segmentDisplay.querySelector('.segment-overlay'),
+                segmentOverlayTop: segmentDisplay.querySelector('.segment-overlay__top'),
+                segmentOverlayBottom: segmentDisplay.querySelector('.segment-overlay__bottom'),
             };
         }
 
         function updateSegmentValues(displayElement, overlayElement, value) {
-            displayElement.textContent = value;
-            overlayElement.textContent = value;
+            displayElement.textContent = value; overlayElement.textContent = value;
         }
 
         function updateTimeSegment(segmentElement, timeValue) {
             const segmentElements = getTimeSegmentElements(segmentElement);
-
-            if (parseInt(segmentElements.segmentDisplayTop.textContent, 10) === timeValue) {
-                return;
-            }
-
+            if (parseInt(segmentElements.segmentDisplayTop.textContent, 10) === timeValue) return;
             segmentElements.segmentOverlay.classList.add('flip');
-
-            updateSegmentValues(
-                segmentElements.segmentDisplayTop,
-                segmentElements.segmentOverlayBottom,
-                timeValue
-            );
-
+            updateSegmentValues(segmentElements.segmentDisplayTop, segmentElements.segmentOverlayBottom, timeValue);
             function finishAnimation() {
                 segmentElements.segmentOverlay.classList.remove('flip');
-                updateSegmentValues(
-                    segmentElements.segmentDisplayBottom,
-                    segmentElements.segmentOverlayTop,
-                    timeValue
-                );
+                updateSegmentValues(segmentElements.segmentDisplayBottom, segmentElements.segmentOverlayTop, timeValue);
                 this.removeEventListener('animationend', finishAnimation);
             }
-
             segmentElements.segmentOverlay.addEventListener('animationend', finishAnimation);
         }
 
         function updateClock() {
             const now = new Date();
+            updateCharts(now); 
+
             let hours = now.getHours();
             const minutes = now.getMinutes();
-            
             let displayHours = hours;
             let period = '';
             
@@ -417,28 +509,16 @@
                 period = hours >= 12 ? 'PM' : 'AM';
                 displayHours = hours % 12;
                 if (displayHours === 0) displayHours = 12;
-            } else {
-                period = ''; // No AM/PM in 24h mode usually
             }
             
-            const h1 = Math.floor(displayHours / 10);
-            const h2 = displayHours % 10;
-            const m1 = Math.floor(minutes / 10);
-            const m2 = minutes % 10;
-            
-            const hour1Container = document.getElementById('hour1');
-            const hour2Container = document.getElementById('hour2');
-            const minute1Container = document.getElementById('minute1');
-            const minute2Container = document.getElementById('minute2');
-            
-            updateTimeSegment(hour1Container.querySelector('.time-segment'), h1);
-            updateTimeSegment(hour2Container.querySelector('.time-segment'), h2);
-            updateTimeSegment(minute1Container.querySelector('.time-segment'), m1);
-            updateTimeSegment(minute2Container.querySelector('.time-segment'), m2);
+            updateTimeSegment(document.querySelector('#hour1 .time-segment'), Math.floor(displayHours / 10));
+            updateTimeSegment(document.querySelector('#hour2 .time-segment'), displayHours % 10);
+            updateTimeSegment(document.querySelector('#minute1 .time-segment'), Math.floor(minutes / 10));
+            updateTimeSegment(document.querySelector('#minute2 .time-segment'), minutes % 10);
             
             document.getElementById('period').textContent = period;
+            document.getElementById('dayName').textContent = days[now.getDay()];
             
-            // Date Logic preserved
             const day = now.getDate();
             const month = now.getMonth() + 1;
             const year = now.getFullYear();
@@ -447,33 +527,47 @@
             document.getElementById('day2').textContent = day % 10;
             document.getElementById('month1').textContent = Math.floor(month / 10);
             document.getElementById('month2').textContent = month % 10;
-            // Year kept in DOM but hidden via CSS for cleaner look
             document.getElementById('year1').textContent = Math.floor(year / 1000);
             document.getElementById('year2').textContent = Math.floor((year % 1000) / 100);
             document.getElementById('year3').textContent = Math.floor((year % 100) / 10);
             document.getElementById('year4').textContent = year % 10;
         }
 
+        function applyTheme() {
+             document.body.className = isDark ? 'dark' : 'light';
+             
+             // Optional: Icon ändern basierend auf Theme
+             const themeSvg = document.getElementById('themeSvg');
+             if (isDark) {
+                 // Mond
+                 themeSvg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                 bgPicker.value="#000000"; cardPicker.value="#1a1a1a"; textPicker.value="#e0e0e0";
+             } else {
+                 // Sonne
+                 themeSvg.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                 bgPicker.value="#f0f0f0"; cardPicker.value="#ffffff"; textPicker.value="#333333";
+             }
+        }
+
         document.getElementById('formatBtn').addEventListener('click', function() {
             is24Hour = !is24Hour;
-            this.querySelector('#formatIcon').textContent = is24Hour ? '24h' : '12h';
+            // Kleiner Hinweis: Du kannst hier auch das SVG ändern, wenn du möchtest, 
+            // aber das Uhr-Icon ist für den Toggle meist ausreichend.
             updateClock();
         });
 
         document.getElementById('themeBtn').addEventListener('click', function() {
             isDark = !isDark;
-            document.body.className = isDark ? 'dark' : 'light';
-            this.querySelector('#themeIcon').textContent = isDark ? '◐' : '◑';
+            applyTheme();
+            document.body.style.backgroundColor = ''; root.style = '';
         });
 
         document.getElementById('fullscreenBtn').addEventListener('click', function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
         });
 
+        applyTheme();
         updateClock();
         setInterval(updateClock, 1000);
     </script>
